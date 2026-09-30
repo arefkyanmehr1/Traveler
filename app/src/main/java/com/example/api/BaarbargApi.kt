@@ -56,7 +56,7 @@ object BaarbargApi {
             } catch (_: Exception) {
                 throw IllegalStateException(
                     if (response.isSuccessful) "پاسخ سرویس قابل خواندن نیست."
-                    else "خطای ارتباط با سرویس (${response.code})."
+                    else httpErrorMessage(response.code)
                 )
             }
 
@@ -75,6 +75,14 @@ object BaarbargApi {
         return sequenceOf("resultMessage", "message", "Message")
             .mapNotNull { key -> payload.get(key)?.takeIf { it.isJsonPrimitive }?.asString }
             .firstOrNull { it.isNotBlank() }
-            ?: "خطای ارتباط با سرویس ($code)."
+            ?: httpErrorMessage(code)
+    }
+
+    private fun httpErrorMessage(code: Int): String {
+        return if (code == 401) {
+            "سرویس ورود یا دسترسی را نپذیرفت (401). حساب، نشانی API و در صورت نیاز کلیدهای مجاز سرویس را بررسی کنید."
+        } else {
+            "خطای ارتباط با سرویس ($code)."
+        }
     }
 }

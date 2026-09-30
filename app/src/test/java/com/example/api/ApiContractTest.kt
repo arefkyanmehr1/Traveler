@@ -29,10 +29,14 @@ class ApiContractTest {
     }
 
     @Test
-    fun apiErrorsPreferServerMessageAndHaveHttpFallback() {
+    fun apiErrorsPreferServerMessageAndHaveStatusSpecificFallbacks() {
         val payload = JsonParser.parseString("""{"resultMessage":"دسترسی رد شد"}""").asJsonObject
         assertEquals("دسترسی رد شد", BaarbargApi.errorMessage(payload, 403))
 
+        assertEquals(
+            "سرویس ورود یا دسترسی را نپذیرفت (401). حساب، نشانی API و در صورت نیاز کلیدهای مجاز سرویس را بررسی کنید.",
+            BaarbargApi.errorMessage(JsonParser.parseString("{}").asJsonObject, 401)
+        )
         assertEquals("خطای ارتباط با سرویس (503).", BaarbargApi.errorMessage(JsonParser.parseString("{}").asJsonObject, 503))
     }
 }
