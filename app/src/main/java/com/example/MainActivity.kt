@@ -19,14 +19,21 @@ class MainActivity : ComponentActivity() {
                 var currentScreen by remember { mutableStateOf("dashboard") }
                 var session by remember {
                     mutableStateOf<Map<String, Any>?>(
-                        GeminiKeyStore.getAccessToken(applicationContext)
-                            ?.takeIf(String::isNotBlank)
-                            ?.let {
+                        when {
+                            GeminiKeyStore.isWebSession(applicationContext) -> {
+                                mapOf(
+                                    "mode" to "web",
+                                    "nationalCode" to (GeminiKeyStore.getNationalCode(applicationContext) ?: "")
+                                )
+                            }
+                            !GeminiKeyStore.getAccessToken(applicationContext).isNullOrBlank() -> {
                                 mapOf(
                                     "mode" to "live",
                                     "nationalCode" to (GeminiKeyStore.getNationalCode(applicationContext) ?: "")
                                 )
                             }
+                            else -> null
+                        }
                     )
                 }
                 var selectedShipment by remember { mutableStateOf<ShipmentItem?>(null) }
@@ -34,17 +41,16 @@ class MainActivity : ComponentActivity() {
                 var returnToShipments by remember { mutableStateOf("dashboard") }
 
                 if (session == null && currentScreen != "placeholder") {
-                    LoginScreen(
+                    WebLoginScreen(
                         context = applicationContext,
-                        onSignedIn = { s ->
-                            session = s
+                        onSignedIn = {
+                            GeminiKeyStore.saveWebSession(applicationContext, true)
+                            session = mapOf("mode" to "web", "nationalCode" to "")
                             currentScreen = "dashboard"
                         },
-                        onOpen = { key ->
-                            when (key) {
-                                "signup" -> { placeholderTitle = "ثبت‌نام در سامانه"; currentScreen = "placeholder" }
-                                "forgotPassword" -> { placeholderTitle = "بازیابی رمز عبور"; currentScreen = "placeholder" }
-                            }
+                        onBack = {
+                            currentScreen = "placeholder"
+                            placeholderTitle = "ورود لغو شد"
                         }
                     )
                 } else if (session == null) {
@@ -62,7 +68,7 @@ class MainActivity : ComponentActivity() {
                                     "newdoc" -> { placeholderTitle = "بارنامه حقیقی"; currentScreen = "placeholder" }
                                     "daily" -> { placeholderTitle = "بارنامه روزانه"; currentScreen = "placeholder" }
                                     "carrying" -> currentScreen = "shipments_carrying"
-                                     "history" -> currentScreen = "shipments_issued"
+                                    "history" -> currentScreen = "shipments_issued"
                                     "wallet" -> { placeholderTitle = "کیف پول اعتباری"; currentScreen = "placeholder" }
                                     "fuel" -> { placeholderTitle = "سهمیه سوخت"; currentScreen = "placeholder" }
                                     "inbox" -> { placeholderTitle = "پیام‌ها"; currentScreen = "placeholder" }
@@ -136,7 +142,7 @@ class MainActivity : ComponentActivity() {
                         )
                         "placeholder" -> PlaceholderScreen(
                             title = placeholderTitle,
-                            onBack = { currentScreen = "dashboard" }
+                            onBack = { currentScreen = "login" }
                         )
                         else -> DashboardScreen(
                             context = applicationContext,
