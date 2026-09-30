@@ -13,6 +13,7 @@ object GeminiKeyStore {
     private const val KEY_GEMINI = "gemini.apiKey"
     private const val KEY_ACCESS_TOKEN = "auth.accessToken"
     private const val KEY_NATIONAL_CODE = "auth.nationalCode"
+    private const val KEY_WEB_SESSION = "auth.webSession"
     private const val KEY_POLICY = "automation.policy.enabled"
     private const val KEY_API_BASE_URL = "api.baseUrl"
     private const val KEY_SERVICE_PASSWORD = "api.servicePassword"
@@ -47,13 +48,9 @@ object GeminiKeyStore {
         if (editor.commit()) legacy.edit().clear().apply()
     }
 
-    fun getGeminiApiKey(context: Context): String? {
-        return prefs(context).getString(KEY_GEMINI, null)
-    }
+    fun getGeminiApiKey(context: Context): String? = prefs(context).getString(KEY_GEMINI, null)
 
-    fun hasGeminiApiKey(context: Context): Boolean {
-        return !getGeminiApiKey(context).isNullOrBlank()
-    }
+    fun hasGeminiApiKey(context: Context): Boolean = !getGeminiApiKey(context).isNullOrBlank()
 
     fun saveGeminiApiKey(context: Context, key: String) {
         val trimmed = key.trim()
@@ -65,33 +62,35 @@ object GeminiKeyStore {
         prefs(context).edit().remove(KEY_GEMINI).apply()
     }
 
-    fun getAccessToken(context: Context): String? {
-        return prefs(context).getString(KEY_ACCESS_TOKEN, null)
-    }
+    fun getAccessToken(context: Context): String? = prefs(context).getString(KEY_ACCESS_TOKEN, null)
 
     fun saveAccessToken(context: Context, token: String) {
         prefs(context).edit().putString(KEY_ACCESS_TOKEN, token).apply()
     }
 
-    fun getNationalCode(context: Context): String? {
-        return prefs(context).getString(KEY_NATIONAL_CODE, null)
-    }
+    fun getNationalCode(context: Context): String? = prefs(context).getString(KEY_NATIONAL_CODE, null)
 
     fun saveNationalCode(context: Context, nationalCode: String) {
         prefs(context).edit().putString(KEY_NATIONAL_CODE, nationalCode).apply()
     }
 
+    fun isWebSession(context: Context): Boolean = prefs(context).getBoolean(KEY_WEB_SESSION, false)
+
+    fun saveWebSession(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean(KEY_WEB_SESSION, enabled).apply()
+    }
+
     fun clearSession(context: Context) {
-        prefs(context).edit().remove(KEY_ACCESS_TOKEN).remove(KEY_NATIONAL_CODE).apply()
+        prefs(context).edit()
+            .remove(KEY_ACCESS_TOKEN)
+            .remove(KEY_NATIONAL_CODE)
+            .remove(KEY_WEB_SESSION)
+            .apply()
     }
 
-    fun getServicePassword(context: Context): String? {
-        return prefs(context).getString(KEY_SERVICE_PASSWORD, null)
-    }
+    fun getServicePassword(context: Context): String? = prefs(context).getString(KEY_SERVICE_PASSWORD, null)
 
-    fun getSecurityKey(context: Context): String? {
-        return prefs(context).getString(KEY_SECURITY_KEY, null)
-    }
+    fun getSecurityKey(context: Context): String? = prefs(context).getString(KEY_SECURITY_KEY, null)
 
     fun saveServiceCredentials(context: Context, servicePassword: String, securityKey: String) {
         prefs(context).edit().apply {
@@ -122,9 +121,7 @@ object GeminiKeyStore {
         preferences.edit().putString(KEY_API_BASE_URL, value).apply()
     }
 
-    fun isAutomationEnabled(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_POLICY, false)
-    }
+    fun isAutomationEnabled(context: Context): Boolean = prefs(context).getBoolean(KEY_POLICY, false)
 
     fun setAutomationEnabled(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_POLICY, enabled).apply()
